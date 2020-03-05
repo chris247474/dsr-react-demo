@@ -2,18 +2,29 @@ import React from 'react';
 import { Flex, Card, Text, Button } from 'rimble-ui';
 import { MDAI } from '@makerdao/dai-plugin-mcd';
 import { approveProxyInDai } from '../utils/web3';
+import BigNumber from "bignumber.js"
+
 
 
 class DsrDemo extends React.Component {
     state = {
         ETH: "0.00 ETH",
-        MDAI: "0.00 MDAI",
-        DSR: "0.00 MDAI",
+        MDAI: 0,
+        DSR: 0,
+        DSRCalc: 0,
+        APR: 0,
+        APRString: "",
+        deposit: 10,
+        time: 1,
+        total: 0
     }
+
+
 
     componentWillMount() {
         this.displayBalances();
         this.updateBalance();
+        this.getYearlyRate();
     }
 
 
@@ -23,15 +34,34 @@ class DsrDemo extends React.Component {
         let MDAIBalance = await maker.getToken('MDAI').balanceOf(maker.currentAddress());
         let dsrManager = await maker.service('mcd:savings')
         let dsrBalance = await dsrManager.balance();
-        this.setState({ ETH: ethBalance.toString(), MDAI: MDAIBalance.toString(), DSR: dsrBalance.toString()});
+
+        this.setState({ ETH: ethBalance.toString(), MDAI: BigNumber(MDAIBalance._amount).toNumber(), DSR: BigNumber(dsrBalance._amount).toNumber(), DSRCalc: BigNumber(dsrBalance._amount).toNumber() });
+    }
+
+    calculateInterest = async () => {
+        let APRperSecond = 1 + (this.state.APR / 365 / 86400) * 15
+        let timeOverBlockCreationTime = this.state.time / 15
+        let total = (Math.pow(APRperSecond, timeOverBlockCreationTime)) * this.state.DSRCalc
+        if (total !== 0) {
+            this.setState({ time: this.state.time + 1000 })
+            this.setState({ total: total })
+        } else {
+            this.setState({ total: 0 })
+        }
+
     }
 
     updateBalance = async () => {
         setInterval(async () => {
             this.displayBalances()
         }, 5000)
+
+        setInterval(async () => {
+            this.calculateInterest()
+        }, 1000)
     }
-    
+
+
     approveMDAI = async () => {
         await approveProxyInDai();
     }
@@ -54,6 +84,13 @@ class DsrDemo extends React.Component {
         await dsrManager.exitAll();
     }
 
+    getYearlyRate = async () => {
+        let maker = this.props.maker;
+        let dsrManager = await maker.service('mcd:savings')
+        let yearlyRate = await dsrManager.getYearlyRate();
+        this.setState({ APR: BigNumber(yearlyRate).toNumber(), APRString:BigNumber(yearlyRate).toFixed(2) })
+    }
+
     render() {
         return (
             <div>
@@ -71,12 +108,13 @@ class DsrDemo extends React.Component {
                     <Text>{this.props.maker.currentAddress()}</Text>
                     <Text> {this.state.ETH}</Text>
                     <Flex>
-                        <Text> {this.state.MDAI} </Text>
-
+                        <Text> {this.state.MDAI.toString()} MDAI</Text>
                     </Flex>
                     <Flex>
-
-                        <Text> {this.state.DSR} in DSR </Text>
+                        <Text> {this.state.total.toString()} in DSR </Text>
+                    </Flex>
+                    <Flex>
+                        <Text> {this.state.APRString.toString()} % Savings Rate </Text>
                     </Flex>
                 </Card>
                 <p>Use the buttons below to add and retrieve Dai from DSR.</p>
@@ -86,8 +124,6 @@ class DsrDemo extends React.Component {
                 <Button size='small' onClick={this.joinDsr}>Join 1 Dai to DSR</Button><p></p>
                 <Button size='small' onClick={this.exitDsr}>Retrieve 1 Dai from DSR</Button> <p></p>
                 <Button size='small' onClick={this.exitAllDsr}>Retrieve all Dai from DSR</Button><p></p>
-
-
             </div>
         )
     }
