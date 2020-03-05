@@ -19,3 +19,10 @@ The DSR logic is implemented in src/components/DsrDemo.js
  - Navigate to `dsr` folder 
  - run `npm install`
  - run `npm start`
+
+
+ ### References and Guides
+- [MakerDAO docs](https://docs.makerdao.com/)
+- [Dai.js repository](https://github.com/makerdao/dai.js)
+- [Integration Examples](https://github.com/makerdao/integration-examples)
+- [DSR Integration Guide](https://github.com/makerdao/developerguides/blob/master/dai/dsr-integration-guide/dsr-integration-guide-01.md#how-to-integrate-with-daijs)
