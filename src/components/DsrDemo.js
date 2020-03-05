@@ -13,12 +13,10 @@ class DsrDemo extends React.Component {
         DSR: 0,
         DSRCalc: 0,
         APR: 0,
-        APRString: "",
         deposit: 10,
         time: 1,
         total: 0
     }
-
 
 
     componentWillMount() {
@@ -27,28 +25,25 @@ class DsrDemo extends React.Component {
         this.getYearlyRate();
     }
 
-
     displayBalances = async () => {
         let maker = this.props.maker;
         let ethBalance = await maker.getToken('ETH').balanceOf(maker.currentAddress())
         let MDAIBalance = await maker.getToken('MDAI').balanceOf(maker.currentAddress());
         let dsrManager = await maker.service('mcd:savings')
         let dsrBalance = await dsrManager.balance();
-
-        this.setState({ ETH: ethBalance.toString(), MDAI: BigNumber(MDAIBalance._amount).toNumber(), DSR: BigNumber(dsrBalance._amount).toNumber(), DSRCalc: BigNumber(dsrBalance._amount).toNumber() });
+        this.setState({ ETH: ethBalance.toString(), MDAI: BigNumber(MDAIBalance._amount).toNumber(), DSR: BigNumber(dsrBalance._amount).toNumber() });
     }
 
     calculateInterest = async () => {
         let APRperSecond = 1 + (this.state.APR / 365 / 86400) * 15
         let timeOverBlockCreationTime = this.state.time / 15
-        let total = (Math.pow(APRperSecond, timeOverBlockCreationTime)) * this.state.DSRCalc
+        let total = (Math.pow(APRperSecond, timeOverBlockCreationTime)) * this.state.DSR
         if (total !== 0) {
             this.setState({ time: this.state.time + 1000 })
             this.setState({ total: total })
         } else {
             this.setState({ total: 0 })
         }
-
     }
 
     updateBalance = async () => {
@@ -60,7 +55,6 @@ class DsrDemo extends React.Component {
             this.calculateInterest()
         }, 1000)
     }
-
 
     approveMDAI = async () => {
         await approveProxyInDai();
@@ -88,7 +82,7 @@ class DsrDemo extends React.Component {
         let maker = this.props.maker;
         let dsrManager = await maker.service('mcd:savings')
         let yearlyRate = await dsrManager.getYearlyRate();
-        this.setState({ APR: BigNumber(yearlyRate).toNumber(), APRString:BigNumber(yearlyRate).toFixed(2) })
+        this.setState({ APR: BigNumber(yearlyRate).toNumber() })
     }
 
     render() {
@@ -111,10 +105,10 @@ class DsrDemo extends React.Component {
                         <Text> {this.state.MDAI.toString()} MDAI</Text>
                     </Flex>
                     <Flex>
-                        <Text> {this.state.total.toString()} in DSR </Text>
+                        <Text> {this.state.total.toString()} MDAI in DSR </Text>
                     </Flex>
                     <Flex>
-                        <Text> {this.state.APRString.toString()} % Savings Rate </Text>
+                        <Text> {this.state.APR.toFixed(2).toString()} % Savings Rate </Text>
                     </Flex>
                 </Card>
                 <p>Use the buttons below to add and retrieve Dai from DSR.</p>
