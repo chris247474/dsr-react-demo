@@ -55,7 +55,6 @@ class DsrDemo extends React.Component {
   updateBalance = async () => {
     setInterval(async () => {
       this.displayBalances();
-      console.log("updating ui");
     }, 10);
 
     setInterval(async () => {
