@@ -13,7 +13,8 @@ class DsrDemo extends React.Component {
     APR: 0,
     deposit: 10,
     time: 1,
-    total: 0
+    total: 0,
+    updateInterval: 10
   };
 
   componentWillMount() {
@@ -55,11 +56,11 @@ class DsrDemo extends React.Component {
   updateBalance = async () => {
     setInterval(async () => {
       this.displayBalances();
-    }, 10);
+    }, this.state.updateInterval);
 
     setInterval(async () => {
       this.calculateInterest();
-    }, 10);
+    }, this.state.updateInterval);
   };
 
   approveMDAI = async () => {
