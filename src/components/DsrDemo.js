@@ -7,20 +7,21 @@ import BigNumber from "bignumber.js";
 class DsrDemo extends React.Component {
   state = {
     ETH: "0.00 ETH",
-    MDAI: 0,
-    DSR: 0,
+    MDAIBalance: 0,
+    DSRBalance: 0,
     DSRCalc: 0,
     APR: 0,
     deposit: 10,
-    time: 1,
+    timeMsPassed: 1000,
     total: 0,
-    updateInterval: 10
+    updateInterval: 10,
+    blockTime: 5
   };
 
   componentWillMount() {
     this.displayBalances();
     this.updateBalance();
-    this.getYearlyRate();
+    this.getYearlyRate(); //
   }
 
   displayBalances = async () => {
@@ -41,12 +42,12 @@ class DsrDemo extends React.Component {
   };
 
   calculateInterest = async () => {
-    let APRperSecond = 1 + (this.state.APR / 365 / 86400) * 15;
-    let timeOverBlockCreationTime = this.state.time / 15;
+    // let APRperSecond = 1 + (this.state.APR / 365 / 86400) * 15;
+    let timeOverBlockCreationTime = this.state.timeMsPassed / blockTime;
     let total =
-      Math.pow(APRperSecond, timeOverBlockCreationTime) * this.state.DSR;
+      Math.pow(APRperSecond, timeOverBlockCreationTime) * this.state.DSRBalance;
     if (total !== 0) {
-      this.setState({ time: this.state.time + 1000 });
+      this.setState({ time: this.state.timeMsPassed + updateInterval });
       this.setState({ total: total });
     } else {
       this.setState({ total: 0 });
@@ -109,7 +110,7 @@ class DsrDemo extends React.Component {
           <Text>{this.props.maker.currentAddress()}</Text>
           <Text> {this.state.ETH}</Text>
           <Flex>
-            <Text> {this.state.MDAI.toString()} MDAI</Text>
+            <Text> {this.state.MDAIBalance.toString()} MDAI</Text>
           </Flex>
           <Flex>
             <Text> {this.state.total.toString()} MDAI in DSR </Text>
